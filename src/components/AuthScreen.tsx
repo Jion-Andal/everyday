@@ -10,6 +10,7 @@ export function AuthScreen() {
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export function AuthScreen() {
   if (!isSupabaseConfigured()) {
     return (
       <div className="auth-screen">
-        <div className="auth-card">
+        <div className="auth-card auth-card--centered">
           <h1 className="auth-title">Setup required</h1>
           <p className="auth-message auth-message--error">{getSupabaseConfigError()}</p>
         </div>
@@ -29,6 +30,7 @@ export function AuthScreen() {
     setMode(next);
     setError(null);
     setSuccess(null);
+    setConfirmPassword('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,11 +43,16 @@ export function AuthScreen() {
       if (mode === 'signin') {
         await signIn(email, password);
       } else {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match.');
+          return;
+        }
         const { needsEmailConfirmation } = await signUp(email, password);
         if (needsEmailConfirmation) {
           setSuccess('Check your email to confirm your account, then sign in.');
           setMode('signin');
           setPassword('');
+          setConfirmPassword('');
         }
       }
     } catch (err) {
@@ -54,18 +61,15 @@ export function AuthScreen() {
       setLoading(false);
     }
   };
-
   return (
     <div className="auth-screen">
       <div className="auth-card">
         <div className="auth-brand">
           <PenIcon className="auth-brand__icon" />
-          <div>
-            <h1 className="auth-title">everyday</h1>
-            <p className="auth-subtitle">
-              {mode === 'signin' ? 'Welcome back.' : 'Start your quiet record.'}
-            </p>
-          </div>
+          <h1 className="auth-title">everyday</h1>
+          <p className="auth-subtitle">
+            {mode === 'signin' ? 'Welcome back.' : 'Start your quiet record.'}
+          </p>
         </div>
 
         <div className="auth-tabs" role="tablist" aria-label="Authentication mode">
@@ -121,6 +125,24 @@ export function AuthScreen() {
               autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
             />
           </div>
+
+          {mode === 'signup' && (
+            <div className="field">
+              <label className="field-label" htmlFor="auth-confirm-password">
+                Confirm password
+              </label>
+              <input
+                id="auth-confirm-password"
+                type="password"
+                className="field-input"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+            </div>
+          )}
 
           {success && (
             <p className="auth-message auth-message--success" role="status">

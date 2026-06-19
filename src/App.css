@@ -122,18 +122,25 @@
   box-shadow: var(--shadow-md);
 }
 
+.auth-card--centered {
+  text-align: center;
+}
+
 .auth-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
+  text-align: center;
+  gap: 0.35rem;
   margin-bottom: var(--space-lg);
 }
 
 .auth-brand__icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   color: var(--accent);
   flex-shrink: 0;
+  margin-bottom: 0.15rem;
 }
 
 .auth-title {
