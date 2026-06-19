@@ -1,4 +1,5 @@
 import { PenIcon } from './PenIcon';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 function ThemeIcon({ dark }: { dark: boolean }) {
@@ -30,6 +31,7 @@ function ThemeIcon({ dark }: { dark: boolean }) {
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="app-header">
@@ -40,14 +42,24 @@ export function Header() {
           <p className="header-tagline">a quiet record</p>
         </div>
       </div>
-      <button
-        type="button"
-        className="theme-toggle"
-        onClick={toggleTheme}
-        aria-label={theme === 'light' ? 'Switch to night mode' : 'Switch to day mode'}
-      >
-        <ThemeIcon dark={theme === 'dark'} />
-      </button>
+      <div className="header-actions">
+        {user?.email && (
+          <span className="header-email" title={user.email}>
+            {user.email}
+          </span>
+        )}
+        <button type="button" className="header-signout" onClick={() => signOut()}>
+          Sign out
+        </button>
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === 'light' ? 'Switch to night mode' : 'Switch to day mode'}
+        >
+          <ThemeIcon dark={theme === 'dark'} />
+        </button>
+      </div>
     </header>
   );
 }

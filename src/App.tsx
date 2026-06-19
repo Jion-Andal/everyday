@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { AuthScreen } from './components/AuthScreen';
 import { Calendar } from './components/Calendar';
 import { Header } from './components/Header';
 import { LogDetailModal } from './components/LogDetailModal';
 import { LogModal } from './components/LogModal';
 import { MonthStatsModal } from './components/MonthStatsModal';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useLogs } from './hooks/useLogs';
 import { deleteLog, saveLog } from './services/logs';
@@ -152,10 +154,30 @@ function Dashboard() {
   );
 }
 
+function AppGate() {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="auth-screen">
+        <p className="loading-text">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthScreen />;
+  }
+
+  return <Dashboard />;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
-      <Dashboard />
+      <AuthProvider>
+        <AppGate />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -7,7 +7,15 @@ const anonKey = (
 )?.trim();
 
 export const supabase: SupabaseClient | null =
-  url && anonKey ? createClient(url, anonKey) : null;
+  url && anonKey
+    ? createClient(url, anonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
+    : null;
 
 export function isSupabaseConfigured(): boolean {
   return Boolean(url && anonKey);

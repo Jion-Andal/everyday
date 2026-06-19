@@ -1,29 +1,26 @@
--- Run this in the Supabase SQL Editor for the everyday app (fresh install)
+-- Run this if you already created daily_logs with device_id (existing deployments)
 
--- Daily logs table (user-scoped)
-create table if not exists public.daily_logs (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  log_date date not null,
-  word_of_day text not null default '',
-  what_happened text not null default '',
-  rating smallint not null check (rating >= 1 and rating <= 5),
-  image_url text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (user_id, log_date)
-);
+alter table public.daily_logs
+  add column if not exists user_id uuid references auth.users(id) on delete cascade;
+
+-- Remove open policy from original schema
+drop policy if exists "Allow all access to daily_logs" on public.daily_logs;
+
+-- Drop device-based constraint if present
+alter table public.daily_logs drop constraint if exists daily_logs_device_id_log_date_key;
+
+-- Add user-based constraint (after backfill or for new rows only)
+alter table public.daily_logs drop constraint if exists daily_logs_user_id_log_date_key;
+alter table public.daily_logs
+  add constraint daily_logs_user_id_log_date_key unique (user_id, log_date);
 
 create index if not exists daily_logs_user_date_idx
   on public.daily_logs (user_id, log_date desc);
-
-alter table public.daily_logs enable row level security;
 
 drop policy if exists "Users read own logs" on public.daily_logs;
 drop policy if exists "Users insert own logs" on public.daily_logs;
 drop policy if exists "Users update own logs" on public.daily_logs;
 drop policy if exists "Users delete own logs" on public.daily_logs;
-drop policy if exists "Allow all access to daily_logs" on public.daily_logs;
 
 create policy "Users read own logs"
   on public.daily_logs for select
@@ -42,11 +39,7 @@ create policy "Users delete own logs"
   on public.daily_logs for delete
   using (auth.uid() = user_id);
 
--- Storage bucket for log images
-insert into storage.buckets (id, name, public)
-values ('log-images', 'log-images', true)
-on conflict (id) do nothing;
-
+-- Storage: replace open policies with user-scoped ones
 drop policy if exists "Allow public read on log-images" on storage.objects;
 drop policy if exists "Allow public upload on log-images" on storage.objects;
 drop policy if exists "Allow public update on log-images" on storage.objects;
@@ -55,6 +48,7 @@ drop policy if exists "Users read own log images" on storage.objects;
 drop policy if exists "Users upload own log images" on storage.objects;
 drop policy if exists "Users update own log images" on storage.objects;
 drop policy if exists "Users delete own log images" on storage.objects;
+drop policy if exists "Public read log images" on storage.objects;
 
 create policy "Users read own log images"
   on storage.objects for select
@@ -84,7 +78,9 @@ create policy "Users delete own log images"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
--- Public read for image URLs in the app (optional; bucket is public)
 create policy "Public read log images"
   on storage.objects for select
   using (bucket_id = 'log-images');
+
+-- Optional: drop legacy column after migrating data
+-- alter table public.daily_logs drop column if exists device_id;

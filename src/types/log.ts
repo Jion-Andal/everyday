@@ -1,6 +1,6 @@
 export interface DailyLog {
   id: string;
-  deviceId: string;
+  userId: string;
   logDate: string;
   wordOfDay: string;
   whatHappened: string;

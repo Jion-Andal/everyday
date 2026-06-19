@@ -1,10 +1,9 @@
 import { requireSupabase } from '../lib/supabase';
-import { getDeviceId } from '../lib/deviceId';
 import type { DailyLog, LogFormData } from '../types/log';
 
 interface DbLogRow {
   id: string;
-  device_id: string;
+  user_id: string;
   log_date: string;
   word_of_day: string;
   what_happened: string;
@@ -17,7 +16,7 @@ interface DbLogRow {
 function mapRow(row: DbLogRow): DailyLog {
   return {
     id: row.id,
-    deviceId: row.device_id,
+    userId: row.user_id,
     logDate: row.log_date,
     wordOfDay: row.word_of_day,
     whatHappened: row.what_happened,
@@ -35,9 +34,17 @@ function toDateString(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+async function requireUserId(): Promise<string> {
+  const client = requireSupabase();
+  const { data, error } = await client.auth.getUser();
+  if (error) throw error;
+  if (!data.user) throw new Error('You must be signed in to continue.');
+  return data.user.id;
+}
+
 export async function fetchLogsForMonth(year: number, month: number): Promise<DailyLog[]> {
   const client = requireSupabase();
-  const deviceId = getDeviceId();
+  const userId = await requireUserId();
   const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
   const lastDay = new Date(year, month + 1, 0).getDate();
   const end = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
@@ -45,7 +52,7 @@ export async function fetchLogsForMonth(year: number, month: number): Promise<Da
   const { data, error } = await client
     .from('daily_logs')
     .select('*')
-    .eq('device_id', deviceId)
+    .eq('user_id', userId)
     .gte('log_date', start)
     .lte('log_date', end)
     .order('log_date', { ascending: true });
@@ -56,9 +63,9 @@ export async function fetchLogsForMonth(year: number, month: number): Promise<Da
 
 export async function uploadLogImage(file: File, logDate: string): Promise<string> {
   const client = requireSupabase();
-  const deviceId = getDeviceId();
+  const userId = await requireUserId();
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${deviceId}/${logDate}.${ext}`;
+  const path = `${userId}/${logDate}.${ext}`;
 
   const { error: uploadError } = await client.storage
     .from('log-images')
@@ -72,7 +79,7 @@ export async function uploadLogImage(file: File, logDate: string): Promise<strin
 
 export async function saveLog(logDate: Date, form: LogFormData, existingId?: string): Promise<DailyLog> {
   const client = requireSupabase();
-  const deviceId = getDeviceId();
+  const userId = await requireUserId();
   const dateStr = toDateString(logDate);
 
   let imageUrl: string | null = form.imagePreview && !form.imageFile ? form.imagePreview : null;
@@ -81,7 +88,7 @@ export async function saveLog(logDate: Date, form: LogFormData, existingId?: str
   }
 
   const payload = {
-    device_id: deviceId,
+    user_id: userId,
     log_date: dateStr,
     word_of_day: form.wordOfDay.trim(),
     what_happened: form.whatHappened.trim(),
@@ -95,6 +102,7 @@ export async function saveLog(logDate: Date, form: LogFormData, existingId?: str
       .from('daily_logs')
       .update(payload)
       .eq('id', existingId)
+      .eq('user_id', userId)
       .select()
       .single();
     if (error) throw error;
@@ -103,7 +111,7 @@ export async function saveLog(logDate: Date, form: LogFormData, existingId?: str
 
   const { data, error } = await client
     .from('daily_logs')
-    .upsert(payload, { onConflict: 'device_id,log_date' })
+    .upsert(payload, { onConflict: 'user_id,log_date' })
     .select()
     .single();
   if (error) throw error;
@@ -112,6 +120,7 @@ export async function saveLog(logDate: Date, form: LogFormData, existingId?: str
 
 export async function deleteLog(log: DailyLog): Promise<void> {
   const client = requireSupabase();
+  const userId = await requireUserId();
 
   if (log.imageUrl) {
     const urlParts = log.imageUrl.split('/log-images/');
@@ -120,7 +129,11 @@ export async function deleteLog(log: DailyLog): Promise<void> {
     }
   }
 
-  const { error } = await client.from('daily_logs').delete().eq('id', log.id);
+  const { error } = await client
+    .from('daily_logs')
+    .delete()
+    .eq('id', log.id)
+    .eq('user_id', userId);
   if (error) throw error;
 }
 
