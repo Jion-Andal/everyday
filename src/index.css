@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --font-body: 'DM Sans', sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+
+  --bg-page: #f0ece6;
+  --bg-surface: #faf8f5;
+  --bg-elevated: #fffdf9;
+  --text-primary: #2a2622;
+  --text-secondary: #6b635a;
+  --text-muted: #9c948a;
+  --accent: #5a4a3a;
+  --accent-hover: #4a3d30;
+  --accent-soft: #a89580;
+  --border: #ddd6cc;
+  --border-light: #ebe5dc;
+  --overlay: rgba(42, 38, 34, 0.35);
+  --bar-fill: #5a4a3a;
+  --bar-empty: #e5dfd6;
+  --danger: #9e5a5a;
+  --danger-bg: #faf3f3;
+  --today-ring: #5a4a3a;
+  --caption-bg: rgba(255, 253, 249, 0.94);
+  --shadow-sm: 0 1px 3px rgba(42, 38, 34, 0.06);
+  --shadow-md: 0 8px 28px rgba(42, 38, 34, 0.08);
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --space-xs: 0.5rem;
+  --space-sm: 0.875rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.25rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+}
+
+[data-theme='dark'] {
+  --bg-page: #181614;
+  --bg-surface: #211e1b;
+  --bg-elevated: #2a2622;
+  --text-primary: #ece7df;
+  --text-secondary: #a9a093;
+  --text-muted: #6f6860;
+  --accent: #c4b5a3;
+  --accent-hover: #d4c8b8;
+  --accent-soft: #8a7d6e;
+  --border: #33302b;
+  --border-light: #2a2724;
+  --overlay: rgba(0, 0, 0, 0.55);
+  --bar-fill: #c4b5a3;
+  --bar-empty: #33302b;
+  --danger: #d49090;
+  --danger-bg: #2a2020;
+  --today-ring: #c4b5a3;
+  --caption-bg: rgba(33, 30, 27, 0.94);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  background-image: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--bg-page) 92%, #fff) 0%,
+    var(--bg-page) 45%,
+    color-mix(in srgb, var(--bg-page) 94%, var(--accent-soft)) 100%
+  );
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
