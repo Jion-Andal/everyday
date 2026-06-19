@@ -7,6 +7,7 @@ import { MonthStatsModal } from './components/MonthStatsModal';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useLogs } from './hooks/useLogs';
 import { deleteLog, saveLog } from './services/logs';
+import { getSupabaseConfigError, isSupabaseConfigured } from './lib/supabase';
 import type { DailyLog, LogFormData } from './types/log';
 import './App.css';
 
@@ -85,6 +86,11 @@ function Dashboard() {
       <Header />
 
       <main className="main">
+        {!isSupabaseConfigured() && (
+          <div className="banner banner--error" role="alert">
+            {getSupabaseConfigError()}
+          </div>
+        )}
         {error && (
           <div className="banner banner--error" role="alert">
             {error}
