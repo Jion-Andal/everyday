@@ -10,94 +10,100 @@ interface MonthStatsModalProps {
 }
 
 const CHART_WIDTH = 520;
-const CHART_HEIGHT = 180;
-const PADDING = { top: 16, right: 16, bottom: 28, left: 32 };
+const CHART_HEIGHT = 200;
+const PADDING = { top: 20, right: 16, bottom: 36, left: 36 };
 
-function ratingToY(rating: number): number {
+const PASTEL_COLORS: Record<number, string> = {
+  1: '#F4A6A6',
+  2: '#F7C59F',
+  3: '#F9E4A8',
+  4: '#B8E0B8',
+  5: '#A8C8EC',
+};
+
+const RATING_HINTS: Record<number, string> = {
+  1: 'hate this day',
+  2: 'rough day',
+  3: 'meh day',
+  4: 'nice day',
+  5: 'great day',
+};
+
+function getYTicks(maxCount: number): number[] {
+  if (maxCount <= 6) {
+    return Array.from({ length: maxCount + 1 }, (_, i) => i);
+  }
+  const step = Math.ceil(maxCount / 4);
+  const ticks: number[] = [0];
+  for (let value = step; value < maxCount; value += step) ticks.push(value);
+  ticks.push(maxCount);
+  return [...new Set(ticks)];
+}
+
+function countToY(count: number, maxCount: number): number {
   const plotHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-  return PADDING.top + plotHeight - ((rating - 1) / 4) * plotHeight;
+  return PADDING.top + plotHeight - (count / maxCount) * plotHeight;
 }
 
-function dayToX(day: number, daysInMonth: number): number {
-  const plotWidth = CHART_WIDTH - PADDING.left - PADDING.right;
-  if (daysInMonth <= 1) return PADDING.left + plotWidth / 2;
-  return PADDING.left + ((day - 1) / (daysInMonth - 1)) * plotWidth;
-}
-
-function buildLineSegments(ratings: (number | null)[], daysInMonth: number): string[] {
-  const segments: string[] = [];
-  let current = '';
-
-  ratings.forEach((rating, index) => {
-    const day = index + 1;
-    if (rating === null) {
-      if (current) {
-        segments.push(current);
-        current = '';
-      }
-      return;
-    }
-
-    const x = dayToX(day, daysInMonth).toFixed(1);
-    const y = ratingToY(rating).toFixed(1);
-    current += current ? ` L ${x} ${y}` : `M ${x} ${y}`;
-  });
-
-  if (current) segments.push(current);
-  return segments;
-}
-
-function RatingsLineChart({
-  ratingsByDay,
-  daysInMonth,
+function RatingsBarChart({
+  ratings,
   monthLabel,
 }: {
-  ratingsByDay: (number | null)[];
-  daysInMonth: number;
+  ratings: number[];
   monthLabel: string;
 }) {
-  const lineSegments = useMemo(
-    () => buildLineSegments(ratingsByDay, daysInMonth),
-    [ratingsByDay, daysInMonth],
-  );
+  const { bars, maxCount, yTicks } = useMemo(() => {
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const rating of ratings) counts[rating]++;
 
-  const points = useMemo(
-    () =>
-      ratingsByDay.flatMap((rating, index) =>
-        rating === null
-          ? []
-          : [{ day: index + 1, rating, x: dayToX(index + 1, daysInMonth), y: ratingToY(rating) }],
-      ),
-    [ratingsByDay, daysInMonth],
-  );
+    const maxCount = Math.max(...Object.values(counts), 1);
+    const plotWidth = CHART_WIDTH - PADDING.left - PADDING.right;
+    const plotHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
+    const barGap = 12;
+    const barWidth = (plotWidth - barGap * 4) / 5;
 
-  const xLabels = useMemo(() => {
-    const labels: number[] = [1];
-    for (let day = 5; day <= daysInMonth; day += 5) labels.push(day);
-    if (labels[labels.length - 1] !== daysInMonth) labels.push(daysInMonth);
-    return [...new Set(labels)];
-  }, [daysInMonth]);
+    const bars = ([1, 2, 3, 4, 5] as const).map((rating, index) => {
+      const count = counts[rating];
+      const height = (count / maxCount) * plotHeight;
+      const x = PADDING.left + index * (barWidth + barGap);
+      const y = PADDING.top + plotHeight - height;
+
+      return {
+        rating,
+        count,
+        x,
+        y,
+        width: barWidth,
+        height,
+        color: PASTEL_COLORS[rating],
+      };
+    });
+
+    return { bars, maxCount, yTicks: getYTicks(maxCount) };
+  }, [ratings]);
+
+  const baselineY = CHART_HEIGHT - PADDING.bottom;
 
   return (
-    <div className="line-chart" role="img" aria-label={`Line chart of daily ratings for ${monthLabel}`}>
+    <div className="bar-chart" role="img" aria-label={`Bar chart of daily ratings for ${monthLabel}`}>
       <svg
-        className="line-chart__svg"
+        className="bar-chart__svg"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
       >
-        {[1, 2, 3, 4, 5].map((level) => {
-          const y = ratingToY(level);
+        {yTicks.map((tick) => {
+          const y = countToY(tick, maxCount);
           return (
-            <g key={level}>
+            <g key={tick}>
               <line
                 x1={PADDING.left}
                 y1={y}
                 x2={CHART_WIDTH - PADDING.right}
                 y2={y}
-                className="line-chart__grid"
+                className="bar-chart__grid"
               />
-              <text x={PADDING.left - 8} y={y + 4} className="line-chart__axis-label" textAnchor="end">
-                {level}
+              <text x={PADDING.left - 8} y={y + 4} className="bar-chart__axis-label" textAnchor="end">
+                {tick}
               </text>
             </g>
           );
@@ -105,38 +111,47 @@ function RatingsLineChart({
 
         <line
           x1={PADDING.left}
-          y1={CHART_HEIGHT - PADDING.bottom}
+          y1={baselineY}
           x2={CHART_WIDTH - PADDING.right}
-          y2={CHART_HEIGHT - PADDING.bottom}
-          className="line-chart__axis"
+          y2={baselineY}
+          className="bar-chart__axis"
         />
 
-        {lineSegments.map((segment, index) => (
-          <path key={index} d={segment} className="line-chart__line" />
-        ))}
-
-        {points.map((point) => (
-          <circle
-            key={point.day}
-            cx={point.x}
-            cy={point.y}
-            r={3.5}
-            className="line-chart__point"
-          >
-            <title>{`Day ${point.day}: ${point.rating}/5`}</title>
-          </circle>
-        ))}
-
-        {xLabels.map((day) => (
-          <text
-            key={day}
-            x={dayToX(day, daysInMonth)}
-            y={CHART_HEIGHT - 8}
-            className="line-chart__axis-label line-chart__axis-label--x"
-            textAnchor="middle"
-          >
-            {day}
-          </text>
+        {bars.map((bar) => (
+          <g key={bar.rating}>
+            {bar.height > 0 && (
+              <rect
+                x={bar.x}
+                y={bar.y}
+                width={bar.width}
+                height={bar.height}
+                rx={4}
+                ry={4}
+                fill={bar.color}
+                className="bar-chart__bar"
+              >
+                <title>{`${bar.rating}/5 — ${RATING_HINTS[bar.rating]}: ${bar.count} day${bar.count === 1 ? '' : 's'}`}</title>
+              </rect>
+            )}
+            <text
+              x={bar.x + bar.width / 2}
+              y={baselineY + 18}
+              className="bar-chart__axis-label bar-chart__axis-label--x"
+              textAnchor="middle"
+            >
+              {bar.rating}
+            </text>
+            {bar.count > 0 && (
+              <text
+                x={bar.x + bar.width / 2}
+                y={bar.y - 6}
+                className="bar-chart__value"
+                textAnchor="middle"
+              >
+                {bar.count}
+              </text>
+            )}
+          </g>
         ))}
       </svg>
     </div>
@@ -239,7 +254,7 @@ export function MonthStatsModal({
           {loading ? (
             <p className="stats-loading">Loading…</p>
           ) : loggedRatings.length === 0 ? (
-            <p className="stats-empty">No entries yet for this month. Log a few days to see your graph.</p>
+            <p className="stats-empty">No entries yet for this month. Log a few days to see your breakdown.</p>
           ) : (
             <>
               {average && (
@@ -247,13 +262,9 @@ export function MonthStatsModal({
                   Average day rating: <strong>{average}</strong> / 5
                 </p>
               )}
-              <RatingsLineChart
-                ratingsByDay={ratingsByDay}
-                daysInMonth={daysInMonth}
-                monthLabel={monthLabel}
-              />
+              <RatingsBarChart ratings={loggedRatings} monthLabel={monthLabel} />
               <p className="stats-legend">
-                Each point is a day&apos;s rating (1–5). Gaps mean no entry that day.
+                Bar height is the number of logged days at each rating (1–5).
               </p>
             </>
           )}

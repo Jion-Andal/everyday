@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Route, Routes, useSearchParams } from 'react-router-dom';
 import { AuthScreen } from './components/AuthScreen';
 import { Calendar } from './components/Calendar';
 import { Header } from './components/Header';
@@ -13,20 +14,37 @@ import { useLogs } from './hooks/useLogs';
 import { deleteLog, saveLog } from './services/logs';
 import { downloadStoryScreenshot } from './services/exportStory';
 import { getSupabaseConfigError, isSupabaseConfigured } from './lib/supabase';
+import {
+  getCurrentMonthYear,
+  hasMonthYearParams,
+  monthYearPath,
+  monthYearSearchParams,
+  parseMonthYear,
+} from './lib/monthYear';
 import type { DailyLog, LogFormData } from './types/log';
+import { DiaryPage } from './pages/DiaryPage';
 import './App.css';
 
 function Dashboard() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth());
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { year, month } = parseMonthYear(searchParams);
   const { theme } = useTheme();
   const storyExportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (hasMonthYearParams(searchParams)) return;
+    const current = getCurrentMonthYear();
+    setSearchParams(monthYearSearchParams(current.year, current.month), { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const setMonthYear = (nextYear: number, nextMonth: number) => {
+    setSearchParams(monthYearSearchParams(nextYear, nextMonth), { replace: true });
+  };
 
   const { logsByDate, loading, error, refresh } = useLogs(year, month);
 
   const [logModalOpen, setLogModalOpen] = useState(false);
-  const [logDate, setLogDate] = useState(now);
+  const [logDate, setLogDate] = useState(() => new Date());
   const [editingLog, setEditingLog] = useState<DailyLog | undefined>();
 
   const [detailLog, setDetailLog] = useState<DailyLog | null>(null);
@@ -72,21 +90,13 @@ function Dashboard() {
   };
 
   const prevMonth = () => {
-    if (month === 0) {
-      setYear((y) => y - 1);
-      setMonth(11);
-    } else {
-      setMonth((m) => m - 1);
-    }
+    if (month === 0) setMonthYear(year - 1, 11);
+    else setMonthYear(year, month - 1);
   };
 
   const nextMonth = () => {
-    if (month === 11) {
-      setYear((y) => y + 1);
-      setMonth(0);
-    } else {
-      setMonth((m) => m + 1);
-    }
+    if (month === 11) setMonthYear(year + 1, 0);
+    else setMonthYear(year, month + 1);
   };
 
   const handleExportStory = async () => {
@@ -123,6 +133,14 @@ function Dashboard() {
             onNextMonth={nextMonth}
           />
         )}
+        <div className="calendar-actions">
+          <Link
+            to={monthYearPath('/diary', year, month)}
+            className="btn btn--secondary calendar-diary-link"
+          >
+            Open Diary
+          </Link>
+        </div>
       </main>
 
       <footer className="fab-bar">
@@ -202,7 +220,12 @@ function AppGate() {
     return <AuthScreen />;
   }
 
-  return <Dashboard />;
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/diary" element={<DiaryPage />} />
+    </Routes>
+  );
 }
 
 export default function App() {

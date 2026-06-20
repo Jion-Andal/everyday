@@ -131,7 +131,7 @@ export function SettingsSidebar({ open, year, month, onExportStory, onClose }: S
         <div className="settings-sidebar__body">
           <SettingsAccordion
             id="settings-export"
-            title="Export"
+            title="Create a Story"
             open={exportOpen}
             onToggle={() => setExportOpen((v) => !v)}
           >
@@ -145,7 +145,7 @@ export function SettingsSidebar({ open, year, month, onExportStory, onClose }: S
               onClick={handleDownload}
               disabled={exporting}
             >
-              {exporting ? 'Creating image…' : `Download ${monthLabel} story`}
+              {exporting ? 'Creating image…' : `Generate ${monthLabel} calendar`}
             </button>
             {exportError && (
               <p className="form-error settings-feedback" role="alert">

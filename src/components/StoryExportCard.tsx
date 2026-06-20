@@ -75,6 +75,8 @@ export const StoryExportCard = forwardRef<HTMLDivElement, StoryExportCardProps>(
               })}
             </div>
           </div>
+
+          <footer className="story-export__footer">everyday</footer>
         </div>
       </div>
     );

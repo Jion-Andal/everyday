@@ -41,7 +41,8 @@ export async function downloadStoryScreenshot(
 
   const link = document.createElement('a');
   const monthStr = String(month + 1).padStart(2, '0');
-  link.download = `everyday-${year}-${monthStr}-story.png`;
+  const uniqueId = crypto.randomUUID().slice(0, 8);
+  link.download = `everyday-${year}-${monthStr}-story-${uniqueId}.png`;
   link.href = dataUrl;
   link.click();
 }

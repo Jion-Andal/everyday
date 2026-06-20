@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { PenIcon } from './PenIcon';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -49,38 +50,54 @@ function SettingsIcon() {
 }
 
 interface HeaderProps {
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
+  backTo?: string;
 }
 
-export function Header({ onOpenSettings }: HeaderProps) {
+export function Header({ onOpenSettings, backTo }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="app-header">
       <div className="header-brand">
-        <PenIcon className="header-icon" />
-        <div className="header-text">
-          <h1 className="header-title">everyday</h1>
-          <p className="header-tagline">a quiet record</p>
-        </div>
+        {backTo ? (
+          <Link to={backTo} className="header-back">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Calendar</span>
+          </Link>
+        ) : (
+          <>
+            <PenIcon className="header-icon" />
+            <div className="header-text">
+              <h1 className="header-title">everyday</h1>
+              <p className="header-tagline">a quiet record</p>
+            </div>
+          </>
+        )}
       </div>
       <div className="header-actions">
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={onOpenSettings}
-          aria-label="Open settings"
-        >
-          <SettingsIcon />
-        </button>
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={theme === 'light' ? 'Switch to night mode' : 'Switch to day mode'}
-        >
-          <ThemeIcon dark={theme === 'dark'} />
-        </button>
+        <div className="header-actions-dock">
+          <button
+            type="button"
+            className="header-action-btn"
+            onClick={toggleTheme}
+            aria-label={theme === 'light' ? 'Switch to night mode' : 'Switch to day mode'}
+          >
+            <ThemeIcon dark={theme === 'dark'} />
+          </button>
+          {onOpenSettings && (
+            <button
+              type="button"
+              className="header-action-btn"
+              onClick={onOpenSettings}
+              aria-label="Open settings"
+            >
+              <SettingsIcon />
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
