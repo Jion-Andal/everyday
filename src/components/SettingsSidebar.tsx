@@ -159,9 +159,9 @@ export function SettingsSidebar({
             onToggle={() => setExportOpen((v) => !v)}
           >
             <p className="settings-section__desc">
-              Save a {monthLabel} story image (9:16) — ready to post on Instagram or Facebook
-              Stories. Choose your calendar or a word cloud built from every word of the day this
-              month, plus words from your journal entries.
+              Save a {monthLabel} image — ready to post on Instagram or Facebook. The calendar
+              exports as a 9:16 story; the word cloud exports as a 16:9 landscape PNG built from
+              every word of the day this month, plus words from your journal entries.
             </p>
             <div className="settings-export-actions">
               <button

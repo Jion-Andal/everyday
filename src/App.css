@@ -2037,11 +2037,68 @@ html[data-page-visibility='hidden'] .day-box__image {
   color: color-mix(in srgb, var(--text-muted) 85%, var(--accent-warm));
 }
 
+/* ── Word cloud export (1920×1080 landscape, off-screen) ── */
+.story-export-host--wordcloud {
+  width: 1920px;
+  height: 1080px;
+}
+
+.story-export--wordcloud {
+  width: 1920px;
+  height: 1080px;
+}
+
+.story-export--wordcloud .story-export__inner {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 24px 40px;
+  padding: 44px 48px 40px;
+  justify-content: stretch;
+}
+
+.story-export--wordcloud .story-export__title-block {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.story-export--wordcloud .story-export__month {
+  font-size: 64px;
+}
+
+.story-export--wordcloud .story-export__year {
+  font-size: 20px;
+  letter-spacing: 0.24em;
+}
+
+.story-export--wordcloud .story-export__rule {
+  justify-content: flex-start;
+  margin-top: 20px;
+}
+
+.story-export--wordcloud .story-export__panel--wordcloud {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-height: 0;
+}
+
+.story-export--wordcloud .story-export__footer {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  margin-top: 0;
+  text-align: left;
+  font-size: 28px;
+}
+
 .story-export__panel--wordcloud {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 20px;
   background: #ffffff;
   border-color: color-mix(in srgb, var(--accent-warm) 22%, var(--border));
 }
@@ -2054,6 +2111,6 @@ html[data-page-visibility='hidden'] .day-box__image {
   display: block;
   width: 100%;
   height: 100%;
-  max-width: 872px;
-  max-height: 1180px;
+  max-width: 1580px;
+  max-height: 820px;
 }

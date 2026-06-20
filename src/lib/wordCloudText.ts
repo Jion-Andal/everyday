@@ -150,18 +150,18 @@ export function getWordCloudLayout(wordCount: number): {
 } {
   const wordOfDayCount = wordCount;
   if (wordOfDayCount <= 12) {
-    return { gridSize: 7, weightScale: 3.0, minSize: 16 };
+    return { gridSize: 7, weightScale: 4.0, minSize: 20 };
   }
   if (wordOfDayCount <= 20) {
-    return { gridSize: 6, weightScale: 2.5, minSize: 14 };
+    return { gridSize: 6, weightScale: 3.3, minSize: 18 };
   }
   if (wordOfDayCount <= 31) {
-    return { gridSize: 5, weightScale: 2.0, minSize: 13 };
+    return { gridSize: 5, weightScale: 2.7, minSize: 16 };
   }
   if (wordOfDayCount <= 45) {
-    return { gridSize: 4, weightScale: 1.6, minSize: 12 };
+    return { gridSize: 4, weightScale: 2.2, minSize: 14 };
   }
-  return { gridSize: 4, weightScale: 1.25, minSize: 11 };
+  return { gridSize: 4, weightScale: 1.8, minSize: 13 };
 }
 
 export const WORD_CLOUD_COLORS = [

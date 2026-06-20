@@ -18,8 +18,6 @@ export const StoryExportCard = memo(
     ref,
   ) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
     const monthName = new Date(year, month, 1).toLocaleDateString(undefined, { month: 'long' });
 
@@ -50,12 +48,11 @@ export const StoryExportCard = memo(
                 const dateStr = toDateString(year, month, day);
                 const log = logsByDate.get(dateStr);
                 const hasLog = Boolean(log);
-                const isToday = isCurrentMonth && today.getDate() === day;
 
                 return (
                   <div
                     key={day}
-                    className={`story-export__day ${hasLog ? 'story-export__day--filled' : ''} ${isToday ? 'story-export__day--today' : ''}`}
+                    className={`story-export__day ${hasLog ? 'story-export__day--filled' : ''}`}
                   >
                     {hasLog && log!.imageUrl && (
                       <img

@@ -278,7 +278,7 @@ function Dashboard() {
       )}
 
       {wordCloudMounted && (
-        <div ref={wordCloudHostRef} className="story-export-host" aria-hidden="true">
+        <div ref={wordCloudHostRef} className="story-export-host story-export-host--wordcloud" aria-hidden="true">
           <WordCloudExportCard
             ref={wordCloudExportRef}
             year={year}

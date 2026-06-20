@@ -10,8 +10,8 @@ import WordCloud from 'wordcloud';
 import { buildWordCloudList, colorForWord, getWordCloudLayout } from '../lib/wordCloudText';
 import type { ExportLog } from '../types/log';
 
-const CLOUD_WIDTH = 872;
-const CLOUD_HEIGHT = 1180;
+const CLOUD_WIDTH = 1580;
+const CLOUD_HEIGHT = 820;
 
 export interface WordCloudExportHandle {
   waitForRender: () => Promise<void>;
@@ -99,7 +99,7 @@ export const WordCloudExportCard = memo(
         drawOutOfBound: false,
         shrinkToFit: true,
         shape: 'circle',
-        ellipticity: 0.72,
+        ellipticity: 1.35,
       });
 
       return () => {

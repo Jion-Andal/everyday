@@ -2,6 +2,8 @@ import { toPng } from 'html-to-image';
 
 export const STORY_WIDTH = 1080;
 export const STORY_HEIGHT = 1920;
+export const WORD_CLOUD_WIDTH = 1920;
+export const WORD_CLOUD_HEIGHT = 1080;
 
 async function waitForImages(container: HTMLElement): Promise<void> {
   const images = Array.from(container.querySelectorAll('img'));
@@ -61,5 +63,24 @@ export async function downloadWordCloudScreenshot(
   year: number,
   month: number,
 ): Promise<void> {
-  await downloadStoryPng(node, year, month, 'wordcloud');
+  await waitForImages(node);
+
+  if (document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+
+  const dataUrl = await toPng(node, {
+    width: WORD_CLOUD_WIDTH,
+    height: WORD_CLOUD_HEIGHT,
+    pixelRatio: 1,
+    cacheBust: true,
+    skipFonts: false,
+  });
+
+  const link = document.createElement('a');
+  const monthStr = String(month + 1).padStart(2, '0');
+  const uniqueId = crypto.randomUUID().slice(0, 8);
+  link.download = `everyday-${year}-${monthStr}-wordcloud-${uniqueId}.png`;
+  link.href = dataUrl;
+  link.click();
 }
