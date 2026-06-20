@@ -1,4 +1,5 @@
 import { requireSupabase } from '../lib/supabase';
+import { getErrorMessage } from '../lib/errors';
 import type { DailyLog, LogFormData } from '../types/log';
 
 interface DbLogRow {
@@ -37,9 +38,13 @@ function toDateString(date: Date): string {
 async function requireUserId(): Promise<string> {
   const client = requireSupabase();
   const { data, error } = await client.auth.getUser();
-  if (error) throw error;
+  if (error) throw new Error(getErrorMessage(error));
   if (!data.user) throw new Error('You must be signed in to continue.');
   return data.user.id;
+}
+
+function throwDbError(error: { message: string } | null): void {
+  if (error) throw new Error(getErrorMessage(error));
 }
 
 export async function fetchLogsForMonth(year: number, month: number): Promise<DailyLog[]> {
@@ -57,7 +62,7 @@ export async function fetchLogsForMonth(year: number, month: number): Promise<Da
     .lte('log_date', end)
     .order('log_date', { ascending: true });
 
-  if (error) throw error;
+  if (error) throwDbError(error);
   return (data as DbLogRow[]).map(mapRow);
 }
 
@@ -71,7 +76,7 @@ export async function uploadLogImage(file: File, logDate: string): Promise<strin
     .from('log-images')
     .upload(path, file, { upsert: true, contentType: file.type });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error(getErrorMessage(uploadError));
 
   const { data } = client.storage.from('log-images').getPublicUrl(path);
   return data.publicUrl;
@@ -105,16 +110,27 @@ export async function saveLog(logDate: Date, form: LogFormData, existingId?: str
       .eq('user_id', userId)
       .select()
       .single();
-    if (error) throw error;
+    throwDbError(error);
     return mapRow(data as DbLogRow);
   }
 
   const { data, error } = await client
     .from('daily_logs')
-    .upsert(payload, { onConflict: 'user_id,log_date' })
+    .insert(payload)
     .select()
     .single();
-  if (error) throw error;
+  if (error?.code === '23505') {
+    const { data: updated, error: updateError } = await client
+      .from('daily_logs')
+      .update(payload)
+      .eq('user_id', userId)
+      .eq('log_date', dateStr)
+      .select()
+      .single();
+    throwDbError(updateError);
+    return mapRow(updated as DbLogRow);
+  }
+  throwDbError(error);
   return mapRow(data as DbLogRow);
 }
 
@@ -134,7 +150,7 @@ export async function deleteLog(log: DailyLog): Promise<void> {
     .delete()
     .eq('id', log.id)
     .eq('user_id', userId);
-  if (error) throw error;
+  if (error) throwDbError(error);
 }
 
 export function formatDisplayDate(dateStr: string): string {

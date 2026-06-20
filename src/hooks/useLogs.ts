@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../lib/errors';
 import { useCallback, useEffect, useState } from 'react';
 import { fetchLogsForMonth } from '../services/logs';
 import type { DailyLog } from '../types/log';
@@ -14,7 +15,7 @@ export function useLogs(year: number, month: number) {
       const data = await fetchLogsForMonth(year, month);
       setLogs(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load logs');
+      setError(getErrorMessage(err, 'Failed to load logs'));
     } finally {
       setLoading(false);
     }

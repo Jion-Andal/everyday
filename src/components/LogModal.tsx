@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getErrorMessage } from '../lib/errors';
 import { ImageUpload } from './ImageUpload';
 import { RatingTabs } from './RatingTabs';
 import { EMPTY_LOG_FORM, type DailyLog, type LogFormData } from '../types/log';
@@ -51,7 +52,7 @@ export function LogModal({ open, date, existingLog, onClose, onSave }: LogModalP
       await onSave(form);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your log.');
+      setError(getErrorMessage(err, 'Could not save your log.'));
     } finally {
       setSaving(false);
     }

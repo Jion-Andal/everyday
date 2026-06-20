@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../lib/errors';
 import { useState } from 'react';
 import { PenIcon } from './PenIcon';
 import { useAuth } from '../contexts/AuthContext';
@@ -56,7 +57,7 @@ export function AuthScreen() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(getErrorMessage(err, 'Something went wrong.'));
     } finally {
       setLoading(false);
     }

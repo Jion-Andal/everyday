@@ -3,6 +3,20 @@
 alter table public.daily_logs
   add column if not exists user_id uuid references auth.users(id) on delete cascade;
 
+-- Legacy installs require device_id; new app writes user_id only.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'daily_logs'
+      and column_name = 'device_id'
+  ) then
+    alter table public.daily_logs alter column device_id drop not null;
+  end if;
+end $$;
+
 -- Remove open policy from original schema
 drop policy if exists "Allow all access to daily_logs" on public.daily_logs;
 
@@ -82,5 +96,9 @@ create policy "Public read log images"
   on storage.objects for select
   using (bucket_id = 'log-images');
 
--- Optional: drop legacy column after migrating data
--- alter table public.daily_logs drop column if exists device_id;
+-- Drop legacy column (safe once you no longer need old device-scoped rows)
+alter table public.daily_logs drop column if exists device_id;
+
+-- Remove orphaned pre-auth rows, then require user_id on new entries
+delete from public.daily_logs where user_id is null;
+alter table public.daily_logs alter column user_id set not null;
