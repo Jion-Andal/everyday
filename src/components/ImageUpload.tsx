@@ -1,4 +1,5 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { isImageFile, processUploadImage } from '../utils/processUploadImage';
 
 interface ImageUploadProps {
   preview: string | null;
@@ -7,14 +8,18 @@ interface ImageUploadProps {
 
 export function ImageUpload({ preview, onChange }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [processing, setProcessing] = useState(false);
 
-  const handleFile = (file: File | undefined) => {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      onChange(file, reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleFile = async (file: File | undefined) => {
+    if (!file || !isImageFile(file)) return;
+
+    setProcessing(true);
+    try {
+      const { file: compressedFile, preview: compressedPreview } = await processUploadImage(file);
+      onChange(compressedFile, compressedPreview);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const clear = () => {
@@ -38,8 +43,9 @@ export function ImageUpload({ preview, onChange }: ImageUploadProps) {
             type="button"
             className="btn btn--secondary image-upload__add"
             onClick={() => fileInputRef.current?.click()}
+            disabled={processing}
           >
-            Add photo
+            {processing ? 'Processing photo...' : 'Add photo'}
           </button>
         </div>
       )}

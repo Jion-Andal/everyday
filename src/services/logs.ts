@@ -204,12 +204,11 @@ export async function fetchLogByDate(logDate: string): Promise<DailyLog | null> 
 export async function uploadLogImage(file: File, logDate: string): Promise<string> {
   const client = requireSupabase();
   const userId = await requireUserId();
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${userId}/${logDate}.${ext}`;
+  const path = `${userId}/${logDate}.jpg`;
 
   const { error: uploadError } = await client.storage
     .from('log-images')
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: 'image/jpeg' });
 
   if (uploadError) throw new Error(getErrorMessage(uploadError));
 
