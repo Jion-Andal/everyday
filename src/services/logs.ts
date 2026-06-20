@@ -31,6 +31,7 @@ interface DbDiaryRow {
 interface DbExportRow {
   log_date: string;
   word_of_day: string;
+  what_happened: string;
   image_url: string | null;
 }
 
@@ -74,6 +75,7 @@ function mapExportRow(row: DbExportRow): ExportLog {
   return {
     logDate: row.log_date,
     wordOfDay: row.word_of_day,
+    whatHappened: row.what_happened ?? '',
     imageUrl: row.image_url,
   };
 }
@@ -174,7 +176,7 @@ export async function fetchExportLogsForMonth(
 
   const { data, error } = await client
     .from('daily_logs')
-    .select('log_date, word_of_day, image_url')
+    .select('log_date, word_of_day, what_happened, image_url')
     .eq('user_id', userId)
     .gte('log_date', start)
     .lte('log_date', end)

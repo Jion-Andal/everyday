@@ -8,13 +8,15 @@ import { LogModal } from './components/LogModal';
 import { MonthStatsModal } from './components/MonthStatsModal';
 import { SettingsSidebar } from './components/SettingsSidebar';
 import { StoryExportCard } from './components/StoryExportCard';
+import { WordCloudExportCard, type WordCloudExportHandle } from './components/WordCloudExportCard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LogsProvider, useLogsStore } from './contexts/LogsContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useCalendarLogs } from './hooks/useLogs';
 import { usePageVisibility } from './hooks/usePageVisibility';
 import { deleteLog, saveLog } from './services/logs';
-import { downloadStoryScreenshot } from './services/exportStory';
+import { downloadStoryScreenshot, downloadWordCloudScreenshot } from './services/exportStory';
+import { hasWordOfDayWords } from './lib/wordCloudText';
 import { getSupabaseConfigError, isSupabaseConfigured } from './lib/supabase';
 import {
   getCurrentMonthYear,
@@ -32,8 +34,12 @@ function Dashboard() {
   const { year, month } = parseMonthYear(searchParams);
   const { theme } = useTheme();
   const storyExportRef = useRef<HTMLDivElement>(null);
+  const wordCloudExportRef = useRef<WordCloudExportHandle>(null);
+  const wordCloudHostRef = useRef<HTMLDivElement>(null);
   const [exportCardMounted, setExportCardMounted] = useState(false);
+  const [wordCloudMounted, setWordCloudMounted] = useState(false);
   const [exportLogsByDate, setExportLogsByDate] = useState<Map<string, ExportLog>>(new Map());
+  const [wordCloudLogs, setWordCloudLogs] = useState<ExportLog[]>([]);
 
   useEffect(() => {
     if (hasMonthYearParams(searchParams)) return;
@@ -138,6 +144,38 @@ function Dashboard() {
     }
   };
 
+  const handleExportWordCloud = async () => {
+    const exportLogs = await loadExportLogs(year, month, true);
+    if (!hasWordOfDayWords(exportLogs)) {
+      throw new Error('Add at least one word of the day this month to create a word cloud.');
+    }
+
+    setWordCloudLogs(exportLogs);
+    setWordCloudMounted(true);
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
+    if (!wordCloudExportRef.current) {
+      setWordCloudMounted(false);
+      setWordCloudLogs([]);
+      throw new Error('Word cloud export is not ready yet.');
+    }
+
+    try {
+      await wordCloudExportRef.current.waitForRender();
+      const exportNode = wordCloudHostRef.current?.firstElementChild;
+      if (!exportNode || !(exportNode instanceof HTMLElement)) {
+        throw new Error('Word cloud export is not ready yet.');
+      }
+      await downloadWordCloudScreenshot(exportNode, year, month);
+    } finally {
+      setWordCloudMounted(false);
+      setWordCloudLogs([]);
+    }
+  };
+
   const openSettings = useCallback(() => setSettingsOpen(true), []);
 
   return (
@@ -223,6 +261,7 @@ function Dashboard() {
         year={year}
         month={month}
         onExportStory={handleExportStory}
+        onExportWordCloud={handleExportWordCloud}
         onClose={() => setSettingsOpen(false)}
       />
 
@@ -233,6 +272,18 @@ function Dashboard() {
             year={year}
             month={month}
             logsByDate={exportLogsByDate}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {wordCloudMounted && (
+        <div ref={wordCloudHostRef} className="story-export-host" aria-hidden="true">
+          <WordCloudExportCard
+            ref={wordCloudExportRef}
+            year={year}
+            month={month}
+            logs={wordCloudLogs}
             theme={theme}
           />
         </div>

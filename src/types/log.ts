@@ -30,6 +30,7 @@ export interface DiaryEntry {
 export interface ExportLog {
   logDate: string;
   wordOfDay: string;
+  whatHappened: string;
   imageUrl: string | null;
 }
 

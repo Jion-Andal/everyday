@@ -1636,6 +1636,12 @@ html[data-page-visibility='hidden'] .day-box__image {
   text-align: center;
 }
 
+.settings-export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
 .settings-action--signout {
   margin-top: 1rem;
 }
@@ -2029,4 +2035,25 @@ html[data-page-visibility='hidden'] .day-box__image {
   font-variation-settings: 'SOFT' 50, 'WONK' 0;
   letter-spacing: 0.04em;
   color: color-mix(in srgb, var(--text-muted) 85%, var(--accent-warm));
+}
+
+.story-export__panel--wordcloud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--accent-warm) 22%, var(--border));
+}
+
+.story-export[data-theme='dark'] .story-export__panel--wordcloud {
+  background: #ffffff;
+}
+
+.story-export__wordcloud-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 872px;
+  max-height: 1180px;
 }

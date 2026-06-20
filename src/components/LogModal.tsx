@@ -91,7 +91,6 @@ export function LogModal({ open, date, existingLog, onClose, onSave }: LogModalP
                 value={form.wordOfDay}
                 onChange={(e) => setForm({ ...form, wordOfDay: e.target.value })}
                 maxLength={40}
-                autoFocus
               />
             </div>
 

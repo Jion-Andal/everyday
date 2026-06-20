@@ -1,7 +1,7 @@
 import { toPng } from 'html-to-image';
 
-const STORY_WIDTH = 1080;
-const STORY_HEIGHT = 1920;
+export const STORY_WIDTH = 1080;
+export const STORY_HEIGHT = 1920;
 
 async function waitForImages(container: HTMLElement): Promise<void> {
   const images = Array.from(container.querySelectorAll('img'));
@@ -20,10 +20,11 @@ async function waitForImages(container: HTMLElement): Promise<void> {
   );
 }
 
-export async function downloadStoryScreenshot(
+async function downloadStoryPng(
   node: HTMLElement,
   year: number,
   month: number,
+  kind: 'calendar' | 'wordcloud',
 ): Promise<void> {
   await waitForImages(node);
 
@@ -42,7 +43,23 @@ export async function downloadStoryScreenshot(
   const link = document.createElement('a');
   const monthStr = String(month + 1).padStart(2, '0');
   const uniqueId = crypto.randomUUID().slice(0, 8);
-  link.download = `everyday-${year}-${monthStr}-story-${uniqueId}.png`;
+  link.download = `everyday-${year}-${monthStr}-${kind}-${uniqueId}.png`;
   link.href = dataUrl;
   link.click();
+}
+
+export async function downloadStoryScreenshot(
+  node: HTMLElement,
+  year: number,
+  month: number,
+): Promise<void> {
+  await downloadStoryPng(node, year, month, 'calendar');
+}
+
+export async function downloadWordCloudScreenshot(
+  node: HTMLElement,
+  year: number,
+  month: number,
+): Promise<void> {
+  await downloadStoryPng(node, year, month, 'wordcloud');
 }

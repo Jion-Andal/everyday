@@ -9,10 +9,18 @@ interface SettingsSidebarProps {
   year: number;
   month: number;
   onExportStory: () => Promise<void>;
+  onExportWordCloud: () => Promise<void>;
   onClose: () => void;
 }
 
-export function SettingsSidebar({ open, year, month, onExportStory, onClose }: SettingsSidebarProps) {
+export function SettingsSidebar({
+  open,
+  year,
+  month,
+  onExportStory,
+  onExportWordCloud,
+  onClose,
+}: SettingsSidebarProps) {
   const { signOut, changePassword } = useAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -26,7 +34,8 @@ export function SettingsSidebar({ open, year, month, onExportStory, onClose }: S
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [exportingCalendar, setExportingCalendar] = useState(false);
+  const [exportingWordCloud, setExportingWordCloud] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -59,17 +68,31 @@ export function SettingsSidebar({ open, year, month, onExportStory, onClose }: S
     year: 'numeric',
   });
 
-  const handleDownload = async () => {
-    setExporting(true);
+  const handleDownloadCalendar = async () => {
+    setExportingCalendar(true);
     setExportError(null);
     try {
       await onExportStory();
     } catch (err) {
-      setExportError(getErrorMessage(err, 'Could not create story image.'));
+      setExportError(getErrorMessage(err, 'Could not create calendar story image.'));
     } finally {
-      setExporting(false);
+      setExportingCalendar(false);
     }
   };
+
+  const handleDownloadWordCloud = async () => {
+    setExportingWordCloud(true);
+    setExportError(null);
+    try {
+      await onExportWordCloud();
+    } catch (err) {
+      setExportError(getErrorMessage(err, 'Could not create word cloud image.'));
+    } finally {
+      setExportingWordCloud(false);
+    }
+  };
+
+  const exporting = exportingCalendar || exportingWordCloud;
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -136,17 +159,28 @@ export function SettingsSidebar({ open, year, month, onExportStory, onClose }: S
             onToggle={() => setExportOpen((v) => !v)}
           >
             <p className="settings-section__desc">
-              Save a {monthLabel} story image (9:16) of your calendar — ready to post on
-              Instagram or Facebook Stories.
+              Save a {monthLabel} story image (9:16) — ready to post on Instagram or Facebook
+              Stories. Choose your calendar or a word cloud built from every word of the day this
+              month, plus words from your journal entries.
             </p>
-            <button
-              type="button"
-              className="btn btn--secondary settings-action"
-              onClick={handleDownload}
-              disabled={exporting}
-            >
-              {exporting ? 'Creating image…' : `Generate ${monthLabel} calendar`}
-            </button>
+            <div className="settings-export-actions">
+              <button
+                type="button"
+                className="btn btn--secondary settings-action"
+                onClick={handleDownloadCalendar}
+                disabled={exporting}
+              >
+                {exportingCalendar ? 'Creating image…' : `Generate ${monthLabel} calendar`}
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary settings-action"
+                onClick={handleDownloadWordCloud}
+                disabled={exporting}
+              >
+                {exportingWordCloud ? 'Creating image…' : `Generate ${monthLabel} word cloud`}
+              </button>
+            </div>
             {exportError && (
               <p className="form-error settings-feedback" role="alert">
                 {exportError}
