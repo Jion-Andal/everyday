@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 
 interface ImageUploadProps {
   preview: string | null;
@@ -7,8 +7,6 @@ interface ImageUploadProps {
 
 export function ImageUpload({ preview, onChange }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleFile = (file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -17,13 +15,11 @@ export function ImageUpload({ preview, onChange }: ImageUploadProps) {
       onChange(file, reader.result as string);
     };
     reader.readAsDataURL(file);
-    setMenuOpen(false);
   };
 
   const clear = () => {
     onChange(null, null);
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   return (
@@ -38,48 +34,19 @@ export function ImageUpload({ preview, onChange }: ImageUploadProps) {
         </div>
       ) : (
         <div className="image-upload__actions">
-          <p className="image-upload__hint">A photo from today, if you like.</p>
-          <div className="image-upload__buttons">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={() => setMenuOpen((o) => !o)}
-            >
-              Add photo
-            </button>
-            {menuOpen && (
-              <div className="image-upload__menu">
-                <button
-                  type="button"
-                  className="image-upload__menu-item"
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  Take a photo
-                </button>
-                <button
-                  type="button"
-                  className="image-upload__menu-item"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Upload from gallery
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            className="btn btn--secondary image-upload__add"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Add photo
+          </button>
         </div>
       )}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        className="sr-only"
-        onChange={(e) => handleFile(e.target.files?.[0])}
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
         className="sr-only"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />

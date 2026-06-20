@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getErrorMessage } from '../lib/errors';
-import { downloadMonthExport } from '../services/exportLogs';
-import type { DailyLog } from '../types/log';
 import { ConfirmModal } from './ConfirmModal';
 import { SettingsAccordion } from './SettingsAccordion';
 
@@ -10,11 +8,11 @@ interface SettingsSidebarProps {
   open: boolean;
   year: number;
   month: number;
-  logs: DailyLog[];
+  onExportStory: () => Promise<void>;
   onClose: () => void;
 }
 
-export function SettingsSidebar({ open, year, month, logs, onClose }: SettingsSidebarProps) {
+export function SettingsSidebar({ open, year, month, onExportStory, onClose }: SettingsSidebarProps) {
   const { signOut, changePassword } = useAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -28,6 +26,8 @@ export function SettingsSidebar({ open, year, month, logs, onClose }: SettingsSi
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +40,7 @@ export function SettingsSidebar({ open, year, month, logs, onClose }: SettingsSi
     setSignOutError(null);
     setExportOpen(false);
     setAboutOpen(false);
+    setExportError(null);
   }, [open]);
 
   useEffect(() => {
@@ -58,8 +59,16 @@ export function SettingsSidebar({ open, year, month, logs, onClose }: SettingsSi
     year: 'numeric',
   });
 
-  const handleDownload = () => {
-    downloadMonthExport(year, month, logs);
+  const handleDownload = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      await onExportStory();
+    } catch (err) {
+      setExportError(getErrorMessage(err, 'Could not create story image.'));
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -127,12 +136,22 @@ export function SettingsSidebar({ open, year, month, logs, onClose }: SettingsSi
             onToggle={() => setExportOpen((v) => !v)}
           >
             <p className="settings-section__desc">
-              Download your logs for {monthLabel}, including each entry and which days are filled on
-              the calendar.
+              Save a {monthLabel} story image (9:16) of your calendar — ready to post on
+              Instagram or Facebook Stories.
             </p>
-            <button type="button" className="btn btn--secondary settings-action" onClick={handleDownload}>
-              Download {monthLabel}
+            <button
+              type="button"
+              className="btn btn--secondary settings-action"
+              onClick={handleDownload}
+              disabled={exporting}
+            >
+              {exporting ? 'Creating image…' : `Download ${monthLabel} story`}
             </button>
+            {exportError && (
+              <p className="form-error settings-feedback" role="alert">
+                {exportError}
+              </p>
+            )}
           </SettingsAccordion>
 
           <SettingsAccordion

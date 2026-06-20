@@ -67,7 +67,7 @@ export function LogModal({ open, date, existingLog, onClose, onSave }: LogModalP
         aria-modal="true"
         aria-labelledby="log-modal-title"
       >
-        <header className="modal__header">
+        <header className="modal__header modal__header--log">
           <h2 id="log-modal-title" className="modal__title">
             {existingLog ? 'Edit your day' : 'Log your day'}
           </h2>
@@ -77,55 +77,57 @@ export function LogModal({ open, date, existingLog, onClose, onSave }: LogModalP
           </button>
         </header>
 
-        <form className="modal__body" onSubmit={handleSubmit}>
-          <div className="field">
-            <label className="field-label" htmlFor="word-of-day">
-              Word of the day
-            </label>
-            <input
-              id="word-of-day"
-              type="text"
-              className="field-input"
-              placeholder="one word that captures today..."
-              value={form.wordOfDay}
-              onChange={(e) => setForm({ ...form, wordOfDay: e.target.value })}
-              maxLength={40}
-              autoFocus
+        <form className="modal__form" onSubmit={handleSubmit}>
+          <div className="modal__body modal__body--log">
+            <div className="field">
+              <label className="field-label" htmlFor="word-of-day">
+                Word of the day
+              </label>
+              <input
+                id="word-of-day"
+                type="text"
+                className="field-input"
+                placeholder="one word that captures today..."
+                value={form.wordOfDay}
+                onChange={(e) => setForm({ ...form, wordOfDay: e.target.value })}
+                maxLength={40}
+                autoFocus
+              />
+            </div>
+
+            <div className="field">
+              <label className="field-label" htmlFor="what-happened">
+                What happened today?
+              </label>
+              <textarea
+                id="what-happened"
+                className="field-textarea"
+                placeholder="write freely — no one else has to read this..."
+                rows={4}
+                value={form.whatHappened}
+                onChange={(e) => setForm({ ...form, whatHappened: e.target.value })}
+              />
+            </div>
+
+            <div className="field field--last">
+              <span className="field-label">Rate your day</span>
+              <RatingTabs
+                value={form.rating}
+                onChange={(rating) => setForm({ ...form, rating })}
+              />
+            </div>
+
+            <ImageUpload
+              preview={form.imagePreview}
+              onChange={(file, preview) =>
+                setForm({ ...form, imageFile: file, imagePreview: preview })
+              }
             />
+
+            {error && <p className="form-error">{error}</p>}
           </div>
 
-          <div className="field">
-            <label className="field-label" htmlFor="what-happened">
-              What happened today?
-            </label>
-            <textarea
-              id="what-happened"
-              className="field-textarea"
-              placeholder="write freely — no one else has to read this..."
-              rows={4}
-              value={form.whatHappened}
-              onChange={(e) => setForm({ ...form, whatHappened: e.target.value })}
-            />
-          </div>
-
-          <div className="field">
-            <span className="field-label">Rate your day</span>
-            <RatingTabs
-              value={form.rating}
-              onChange={(rating) => setForm({ ...form, rating })}
-            />
-          </div>
-
-          <ImageUpload
-            preview={form.imagePreview}
-            onChange={(file, preview) =>
-              setForm({ ...form, imageFile: file, imagePreview: preview })
-            }
-          />
-
-          {error && <p className="form-error">{error}</p>}
-
-          <footer className="modal__footer">
+          <footer className="modal__footer modal__footer--log">
             <button type="button" className="btn btn--ghost" onClick={onClose}>
               Cancel
             </button>

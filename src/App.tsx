@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AuthScreen } from './components/AuthScreen';
 import { Calendar } from './components/Calendar';
 import { Header } from './components/Header';
@@ -6,10 +6,12 @@ import { LogDetailModal } from './components/LogDetailModal';
 import { LogModal } from './components/LogModal';
 import { MonthStatsModal } from './components/MonthStatsModal';
 import { SettingsSidebar } from './components/SettingsSidebar';
+import { StoryExportCard } from './components/StoryExportCard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useLogs } from './hooks/useLogs';
 import { deleteLog, saveLog } from './services/logs';
+import { downloadStoryScreenshot } from './services/exportStory';
 import { getSupabaseConfigError, isSupabaseConfigured } from './lib/supabase';
 import type { DailyLog, LogFormData } from './types/log';
 import './App.css';
@@ -18,8 +20,10 @@ function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
+  const { theme } = useTheme();
+  const storyExportRef = useRef<HTMLDivElement>(null);
 
-  const { logsByDate, logs, loading, error, refresh } = useLogs(year, month);
+  const { logsByDate, loading, error, refresh } = useLogs(year, month);
 
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [logDate, setLogDate] = useState(now);
@@ -83,6 +87,13 @@ function Dashboard() {
     } else {
       setMonth((m) => m + 1);
     }
+  };
+
+  const handleExportStory = async () => {
+    if (!storyExportRef.current) {
+      throw new Error('Story export is not ready yet.');
+    }
+    await downloadStoryScreenshot(storyExportRef.current, year, month);
   };
 
   return (
@@ -159,9 +170,19 @@ function Dashboard() {
         open={settingsOpen}
         year={year}
         month={month}
-        logs={logs}
+        onExportStory={handleExportStory}
         onClose={() => setSettingsOpen(false)}
       />
+
+      <div className="story-export-host" aria-hidden="true">
+        <StoryExportCard
+          ref={storyExportRef}
+          year={year}
+          month={month}
+          logsByDate={logsByDate}
+          theme={theme}
+        />
+      </div>
     </div>
   );
 }
