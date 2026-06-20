@@ -55,14 +55,23 @@ export function Calendar({
     <section className="calendar">
       <div className="calendar__nav">
         <button type="button" className="calendar__nav-btn" onClick={onPrevMonth} aria-label="Previous month">
-          ‹
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
-        <h2 className="calendar__title">{monthLabel}</h2>
+        <div className="calendar__heading">
+          <p className="calendar__eyebrow">Your journal</p>
+          <h2 className="calendar__title">{monthLabel}</h2>
+        </div>
         <button type="button" className="calendar__nav-btn" onClick={onNextMonth} aria-label="Next month">
-          ›
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
-      <div className="calendar__grid">{cells}</div>
+      <div className="calendar__panel">
+        <div className="calendar__grid">{cells}</div>
+      </div>
     </section>
   );
 }

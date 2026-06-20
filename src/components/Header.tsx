@@ -1,17 +1,16 @@
 import { PenIcon } from './PenIcon';
-import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 function ThemeIcon({ dark }: { dark: boolean }) {
-  if (dark) {
+  if (!dark) {
     return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.25" />
         <path
-          d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+          d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
           stroke="currentColor"
-          strokeWidth="1.25"
+          strokeWidth="1.5"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     );
@@ -19,19 +18,42 @@ function ThemeIcon({ dark }: { dark: boolean }) {
 
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M21 14.5A7.5 7.5 0 0 1 9.5 3.5a7.5 7.5 0 1 0 11.5 11Z"
+        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
         stroke="currentColor"
-        strokeWidth="1.25"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
   );
 }
 
-export function Header() {
+interface HeaderProps {
+  onOpenSettings: () => void;
+}
+
+export function Header({ onOpenSettings }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
 
   return (
     <header className="app-header">
@@ -43,13 +65,13 @@ export function Header() {
         </div>
       </div>
       <div className="header-actions">
-        {user?.email && (
-          <span className="header-email" title={user.email}>
-            {user.email}
-          </span>
-        )}
-        <button type="button" className="header-signout" onClick={() => signOut()}>
-          Sign out
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={onOpenSettings}
+          aria-label="Open settings"
+        >
+          <SettingsIcon />
         </button>
         <button
           type="button"

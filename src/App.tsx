@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { LogDetailModal } from './components/LogDetailModal';
 import { LogModal } from './components/LogModal';
 import { MonthStatsModal } from './components/MonthStatsModal';
+import { SettingsSidebar } from './components/SettingsSidebar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useLogs } from './hooks/useLogs';
@@ -18,7 +19,7 @@ function Dashboard() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
 
-  const { logsByDate, loading, error, refresh } = useLogs(year, month);
+  const { logsByDate, logs, loading, error, refresh } = useLogs(year, month);
 
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [logDate, setLogDate] = useState(now);
@@ -26,6 +27,7 @@ function Dashboard() {
 
   const [detailLog, setDetailLog] = useState<DailyLog | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const openLogForToday = () => {
     const today = new Date();
@@ -85,7 +87,7 @@ function Dashboard() {
 
   return (
     <div className="app">
-      <Header />
+      <Header onOpenSettings={() => setSettingsOpen(true)} />
 
       <main className="main">
         {!isSupabaseConfigured() && (
@@ -113,20 +115,22 @@ function Dashboard() {
       </main>
 
       <footer className="fab-bar">
-        <button
-          type="button"
-          className="fab fab--left"
-          onClick={() => setStatsOpen(true)}
-        >
-          Was it a good month?
-        </button>
-        <button
-          type="button"
-          className="fab fab--right"
-          onClick={openLogForToday}
-        >
-          Log your day
-        </button>
+        <div className="fab-dock">
+          <button
+            type="button"
+            className="fab fab--secondary"
+            onClick={() => setStatsOpen(true)}
+          >
+            Was it a good month?
+          </button>
+          <button
+            type="button"
+            className="fab fab--primary"
+            onClick={openLogForToday}
+          >
+            Log your day
+          </button>
+        </div>
       </footer>
 
       <LogModal
@@ -149,6 +153,14 @@ function Dashboard() {
         initialYear={year}
         initialMonth={month}
         onClose={() => setStatsOpen(false)}
+      />
+
+      <SettingsSidebar
+        open={settingsOpen}
+        year={year}
+        month={month}
+        logs={logs}
+        onClose={() => setSettingsOpen(false)}
       />
     </div>
   );

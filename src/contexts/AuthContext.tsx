@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
+import { getErrorMessage } from '../lib/errors';
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
 
 interface AuthContextValue {
@@ -17,6 +18,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ needsEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -70,8 +72,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const client = requireSupabase();
     const { error } = await client.auth.signOut();
-    if (error) throw error;
+    if (error) throw new Error(getErrorMessage(error));
   }, []);
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      const client = requireSupabase();
+      const email = session?.user?.email;
+      if (!email) throw new Error('You must be signed in to change your password.');
+
+      const { error: verifyError } = await client.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+      if (verifyError) throw new Error('Current password is incorrect.');
+
+      const { error } = await client.auth.updateUser({ password: newPassword });
+      if (error) throw new Error(getErrorMessage(error));
+    },
+    [session?.user?.email],
+  );
 
   const value = useMemo(
     () => ({
@@ -81,8 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      changePassword,
     }),
-    [session, loading, signIn, signUp, signOut],
+    [session, loading, signIn, signUp, signOut, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
