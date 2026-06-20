@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { useLogs } from '../hooks/useLogs';
+import { useDiaryEntries } from '../hooks/useLogs';
 import { getSupabaseConfigError, isSupabaseConfigured } from '../lib/supabase';
 import {
   getCurrentMonthYear,
@@ -31,15 +31,7 @@ export function DiaryPage() {
     const current = getCurrentMonthYear();
     setSearchParams(monthYearSearchParams(current.year, current.month), { replace: true });
   }, [searchParams, setSearchParams]);
-  const { logs, loading, error } = useLogs(year, month);
-
-  const entries = useMemo(
-    () =>
-      logs
-        .filter((log) => log.whatHappened.trim())
-        .sort((a, b) => a.logDate.localeCompare(b.logDate)),
-    [logs],
-  );
+  const { entries, loading, error } = useDiaryEntries(year, month);
 
   const monthLabel = new Date(year, month, 1).toLocaleDateString(undefined, {
     month: 'long',

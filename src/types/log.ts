@@ -10,6 +10,29 @@ export interface DailyLog {
   updatedAt: string;
 }
 
+/** Minimal fields for rendering the calendar grid. */
+export interface CalendarLog {
+  id: string;
+  logDate: string;
+  wordOfDay: string;
+  imageUrl: string | null;
+}
+
+/** Fields needed for the diary page. */
+export interface DiaryEntry {
+  id: string;
+  logDate: string;
+  wordOfDay: string;
+  whatHappened: string;
+}
+
+/** Fields needed for story export images. */
+export interface ExportLog {
+  logDate: string;
+  wordOfDay: string;
+  imageUrl: string | null;
+}
+
 export interface LogFormData {
   wordOfDay: string;
   whatHappened: string;

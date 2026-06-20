@@ -1,31 +1,105 @@
 import { getErrorMessage } from '../lib/errors';
-import { useCallback, useEffect, useState } from 'react';
-import { fetchLogsForMonth } from '../services/logs';
-import type { DailyLog } from '../types/log';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLogsStore } from '../contexts/LogsContext';
+import type { CalendarLog, DiaryEntry } from '../types/log';
 
-export function useLogs(year: number, month: number) {
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [loading, setLoading] = useState(true);
+function useCachedMonthQuery<T>(
+  year: number,
+  month: number,
+  enabled: boolean,
+  getCached: (year: number, month: number) => T | undefined,
+  load: (year: number, month: number, force?: boolean) => Promise<T>,
+) {
+  const store = useLogsStore();
+  const cached = enabled ? getCached(year, month) : undefined;
+  const [loading, setLoading] = useState(enabled && cached === undefined);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchLogsForMonth(year, month);
-      setLogs(data);
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to load logs'));
-    } finally {
-      setLoading(false);
-    }
-  }, [year, month]);
+  const refresh = useCallback(
+    async (options?: { force?: boolean; silent?: boolean }) => {
+      if (!enabled) return;
+
+      const force = options?.force ?? false;
+      const silent = options?.silent ?? false;
+
+      if (!silent && (force || getCached(year, month) === undefined)) {
+        setLoading(true);
+      }
+      setError(null);
+
+      try {
+        await load(year, month, force);
+      } catch (err) {
+        setError(getErrorMessage(err, 'Failed to load logs'));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [enabled, getCached, load, year, month],
+  );
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
 
-  const logsByDate = new Map(logs.map((l) => [l.logDate, l]));
+    if (getCached(year, month) !== undefined) {
+      setLoading(false);
+      setError(null);
+      return;
+    }
 
-  return { logs, logsByDate, loading, error, refresh };
+    void refresh();
+  }, [enabled, year, month, store.tick, getCached, refresh]);
+
+  const items = enabled ? getCached(year, month) ?? [] : [];
+
+  return { items, loading: enabled ? loading : false, error, refresh };
 }
+
+export function useCalendarLogs(year: number, month: number) {
+  const store = useLogsStore();
+  const { items, loading, error, refresh } = useCachedMonthQuery(
+    year,
+    month,
+    true,
+    store.getCachedCalendarLogs,
+    store.loadCalendarLogs,
+  );
+
+  const logsByDate = useMemo(
+    () => new Map(items.map((log) => [log.logDate, log])),
+    [items],
+  );
+
+  return { logs: items, logsByDate, loading, error, refresh };
+}
+
+export function useDiaryEntries(year: number, month: number) {
+  const store = useLogsStore();
+  const { items, loading, error, refresh } = useCachedMonthQuery(
+    year,
+    month,
+    true,
+    store.getCachedDiaryEntries,
+    store.loadDiaryEntries,
+  );
+
+  return { entries: items, loading, error, refresh };
+}
+
+export function useRatings(year: number, month: number, enabled: boolean) {
+  const store = useLogsStore();
+  const { items, loading, error, refresh } = useCachedMonthQuery(
+    year,
+    month,
+    enabled,
+    store.getCachedRatings,
+    store.loadRatings,
+  );
+
+  return { ratings: items, loading, error, refresh };
+}
+
+export type { CalendarLog, DiaryEntry };

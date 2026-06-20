@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchLogsForMonth } from '../services/logs';
-import type { DailyLog } from '../types/log';
+import { useRatings } from '../hooks/useLogs';
 
 interface MonthStatsModalProps {
   open: boolean;
@@ -166,22 +165,13 @@ export function MonthStatsModal({
 }: MonthStatsModalProps) {
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { ratings, loading } = useRatings(year, month, open);
 
   useEffect(() => {
     if (!open) return;
     setYear(initialYear);
     setMonth(initialMonth);
   }, [open, initialYear, initialMonth]);
-
-  useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    fetchLogsForMonth(year, month)
-      .then(setLogs)
-      .finally(() => setLoading(false));
-  }, [open, year, month]);
 
   if (!open) return null;
 
@@ -190,18 +180,9 @@ export function MonthStatsModal({
     year: 'numeric',
   });
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const ratingsByDay: (number | null)[] = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1;
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const log = logs.find((l) => l.logDate === dateStr);
-    return log?.rating ?? null;
-  });
-
-  const loggedRatings = ratingsByDay.filter((r): r is number => r !== null);
   const average =
-    loggedRatings.length > 0
-      ? (loggedRatings.reduce((a, b) => a + b, 0) / loggedRatings.length).toFixed(1)
+    ratings.length > 0
+      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
       : null;
 
   const prevMonth = () => {
@@ -253,7 +234,7 @@ export function MonthStatsModal({
         <div className="modal__body stats-body">
           {loading ? (
             <p className="stats-loading">Loading…</p>
-          ) : loggedRatings.length === 0 ? (
+          ) : ratings.length === 0 ? (
             <p className="stats-empty">No entries yet for this month. Log a few days to see your breakdown.</p>
           ) : (
             <>
@@ -262,7 +243,7 @@ export function MonthStatsModal({
                   Average day rating: <strong>{average}</strong> / 5
                 </p>
               )}
-              <RatingsBarChart ratings={loggedRatings} monthLabel={monthLabel} />
+              <RatingsBarChart ratings={ratings} monthLabel={monthLabel} />
               <p className="stats-legend">
                 Bar height is the number of logged days at each rating (1–5).
               </p>

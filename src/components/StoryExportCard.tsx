@@ -1,10 +1,10 @@
-import { forwardRef } from 'react';
-import type { DailyLog } from '../types/log';
+import { forwardRef, memo } from 'react';
+import type { ExportLog } from '../types/log';
 
 interface StoryExportCardProps {
   year: number;
   month: number;
-  logsByDate: Map<string, DailyLog>;
+  logsByDate: Map<string, ExportLog>;
   theme: 'light' | 'dark';
 }
 
@@ -12,8 +12,11 @@ function toDateString(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-export const StoryExportCard = forwardRef<HTMLDivElement, StoryExportCardProps>(
-  function StoryExportCard({ year, month, logsByDate, theme }, ref) {
+export const StoryExportCard = memo(
+  forwardRef<HTMLDivElement, StoryExportCardProps>(function StoryExportCard(
+    { year, month, logsByDate, theme },
+    ref,
+  ) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
@@ -80,5 +83,5 @@ export const StoryExportCard = forwardRef<HTMLDivElement, StoryExportCardProps>(
         </div>
       </div>
     );
-  },
+  }),
 );

@@ -1415,6 +1415,43 @@ a.btn {
     padding: 2rem 1.5rem;
     border-radius: var(--radius-lg);
   }
+
+  /* Backdrop blur is costly on mobile GPUs, especially after returning from background. */
+  .app-header,
+  .header-actions-dock,
+  .calendar__panel,
+  .fab-dock,
+  .diary-entry__card,
+  .modal-backdrop,
+  .sidebar-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .app-header,
+  .calendar__panel,
+  .header-actions-dock,
+  .fab-dock {
+    background: var(--bg-elevated);
+  }
+
+  .day-box,
+  .diary-entry__card,
+  .calendar__nav-btn,
+  .fab,
+  .diary__back {
+    transition: none;
+  }
+
+  .day-box:hover,
+  .diary-entry__card:hover,
+  .diary__back:hover {
+    transform: none;
+  }
+}
+
+html[data-page-visibility='hidden'] .day-box__image {
+  content-visibility: hidden;
 }
 
 @media (max-width: 380px) {

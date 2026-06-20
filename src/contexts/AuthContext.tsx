@@ -43,7 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+      setSession((prev) => {
+        if (
+          prev?.access_token === nextSession?.access_token &&
+          prev?.user?.id === nextSession?.user?.id
+        ) {
+          return prev;
+        }
+        return nextSession;
+      });
       setLoading(false);
     });
 
